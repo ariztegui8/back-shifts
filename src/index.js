@@ -27,7 +27,7 @@ async function main() {
 
     app.use('/api/articles', articleRoutes(db))
     app.use('/api/subscribers', subscriberRoutes(db))
-    app.use('/api/auth/login', userRoutes(db))
+    app.use('/api/auth', userRoutes(db))
 
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`)
