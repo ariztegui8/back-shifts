@@ -4,6 +4,7 @@ import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import articleRoutes from './routes/articleRoutes.js';
 import subscriberRoutes from './routes/subscriberRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 dotenv.config()
 
@@ -26,6 +27,7 @@ async function main() {
 
     app.use('/api/articles', articleRoutes(db))
     app.use('/api/subscribers', subscriberRoutes(db))
+    app.use('/api/auth/login', userRoutes(db))
 
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`)
