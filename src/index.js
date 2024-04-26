@@ -2,9 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
-import articleRoutes from './routes/articleRoutes.js';
-import subscriberRoutes from './routes/subscriberRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import professionalRoutes from './routes/professionalRoutes.js';
 
 dotenv.config()
 
@@ -25,9 +24,8 @@ async function main() {
     console.log('Conectado a la base de datos')
     const db = client.db('shifts')
 
-    app.use('/api/articles', articleRoutes(db))
-    app.use('/api/subscribers', subscriberRoutes(db))
-    app.use('/api/auth', userRoutes(db))
+    app.use('/api/auth-user', userRoutes(db))
+    app.use('/api/auth-professional', professionalRoutes(db))
 
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`)
