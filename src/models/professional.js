@@ -12,6 +12,7 @@ export const createProfessional = async (db, userData) => {
     const newUser = {
         ...userData,
         password: hashedPassword,
+        userType: 'professional',
         subscribedAt: new Date()  // Añadir la fecha de creación
     };
 

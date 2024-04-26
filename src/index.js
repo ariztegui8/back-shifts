@@ -4,6 +4,8 @@ import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes.js';
 import professionalRoutes from './routes/professionalRoutes.js';
+import availabilityRoutes from './routes/availabilityRoutes.js';
+import appointmentRoutes from './routes/appointmentRoutes.js';
 
 dotenv.config()
 
@@ -26,6 +28,8 @@ async function main() {
 
     app.use('/api/auth-user', userRoutes(db))
     app.use('/api/auth-professional', professionalRoutes(db))
+    app.use('/api/availability', availabilityRoutes(db));
+    app.use('/api/appointments', appointmentRoutes(db));
 
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`)

@@ -10,6 +10,7 @@ export const createProfessionalController = async (req, res, db) => {
             name,
             apellido,
             pais,
+            userType: 'professional',
             subscribedAt: new Date()
         };
 
@@ -42,7 +43,8 @@ export const updateProfessionalController = async (req, res, db) => {
             apellido,
             profesion,
             empresa,
-            pais
+            pais,
+            userType: 'professional',
         };
 
         const result = await updateProfessional(db, id, userData);
@@ -76,10 +78,12 @@ export const loginProfessional = async (req, res, db) => {
                 res.status(200).send({
                     message: "Login exitoso",
                     user: {
+                        id: user._id,
                         email: user.email, // Confirma que esto es enviado correctamente
                         name: user.name,
                         apellido: user.apellido,
-                        pais: user.pais
+                        pais: user.pais,
+                        userType: user.userType,
                     }
                 });
             } else {
