@@ -4,7 +4,7 @@ import cloudinary from '../cloudinary/cloudinaryConfig.js';
 
 export const createProfessionalController = async (req, res, db) => {
     try {
-        const { title, description, category, author, video } = req.body
+        const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial} = req.body
         let image
         if (req.file) {
             const result = await cloudinary.uploader.upload(req.file.path)
@@ -14,7 +14,7 @@ export const createProfessionalController = async (req, res, db) => {
             image = process.env.CLOU_DEFAULT_IMAGE_URL
         }
 
-        const professionalData = { title, description, category, image, author, video };
+        const professionalData = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial, image };
         const result = await createProfessional(db, professionalData);
         if (result.acknowledged) {
             const total = await db.collection('professional').countDocuments();
@@ -44,8 +44,10 @@ export const getAllProfessionalController = async (req, res, db) => {
     if (search) {
         query = {
             $or: [
-                { title: { $regex: search, $options: "i" } },
-                { description: { $regex: search, $options: "i" } }
+                { nombre: { $regex: search, $options: "i" } },
+                { apellido: { $regex: search, $options: "i" } },
+                { especialidad: { $regex: search, $options: "i" } },
+                { matricula: { $regex: search, $options: "i" } }
             ]
         }
     }
@@ -95,8 +97,8 @@ export const getProfessionalControllerById = async (req, res, db) => {
 
 export const updateProfessionalController = async (req, res, db) => {
     const { id } = req.params
-    const { title, description, category, author, video } = req.body
-    const data = { title, description, category, author, video }
+    const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial } = req.body
+    const data = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial }
 
     if (req.file) {
         const result = await cloudinary.uploader.upload(req.file.path)
