@@ -1,101 +1,142 @@
-import bcrypt from 'bcryptjs';
-import { createProfessional, findAllProfessional, findProfessionalByEmail, findProfessionalById } from '../models/professional.js';
+import { createProfessional, getProfessionalById } from '../models/professional.js';
+import { ObjectId } from 'mongodb';
+import cloudinary from '../cloudinary/cloudinaryConfig.js';
 
 export const createProfessionalController = async (req, res, db) => {
     try {
-        const { email, password, name, apellido, pais } = req.body;
-        const userData = {
-            email,
-            password,
-            name,
-            apellido,
-            pais,
-            userType: 'professional',
-            subscribedAt: new Date()
-        };
+        const { title, description, category, author, video } = req.body
+        let image
+        if (req.file) {
+            const result = await cloudinary.uploader.upload(req.file.path)
+            image = result.secure_url
+            // console.log("URL de la imagen subida:", image);
+        } else {
+            image = process.env.CLOU_DEFAULT_IMAGE_URL
+        }
 
-        const user = await createProfessional(db, userData);
-        res.status(201).send({ message: "Usuario creado exitosamente", userId: user.insertedId });
+        const professionalData = { title, description, category, image, author, video };
+        const result = await createProfessional(db, professionalData);
+        if (result.acknowledged) {
+            const total = await db.collection('professional').countDocuments();
+            const totalPages = Math.ceil(total / 12);
+
+            res.status(201).send({
+                message: "Professional creado exitosamente",
+                professionalId: result.insertedId,
+                imagePath: image,
+                currentPage: Math.ceil(total / 12),
+                totalPages: totalPages
+            });
+        } else {
+            res.status(400).send({ error: "No se pudo crear el professional" });
+        }
     } catch (error) {
-        console.error('Error al crear usuario', error);
+        console.error('Error al crear professional', error);
         res.status(500).send({ error: 'Error interno del servidor' });
     }
-};
+}
 
 export const getAllProfessionalController = async (req, res, db) => {
-    try {
-        const users = await findAllProfessional(db);
-        res.status(200).send(users);
-    } catch (error) {
-        console.error('Error al obtener usuarios', error);
-        res.status(500).send({ error: 'Error interno del servidor' });
+    const { search, sort, page = 1, limit = 12 } = req.query
+    const skip = (page - 1) * limit
+
+    let query = {}
+    if (search) {
+        query = {
+            $or: [
+                { title: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } }
+            ]
+        }
     }
-};
+
+    let sortOrder = {}
+    if (sort === 'ASC') {
+        sortOrder = { title: 1 }
+    } else if (sort === 'DEC') {
+        sortOrder = { title: -1 }
+    }
+
+    try {
+        const professional = await db.collection('professional')
+            .find(query)
+            .sort(sortOrder)
+            .skip(skip)
+            .limit(parseInt(limit))
+            .toArray()
+
+        const total = await db.collection('professional').countDocuments(query)
+
+        res.status(200).send({
+            professional,
+            total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit)
+        })
+    } catch (error) {
+        console.error('Error al obtener professional', error)
+        res.status(500).send({ error: 'Error interno del servidor' })
+    }
+}
+
+export const getProfessionalControllerById = async (req, res, db) => {
+    try {
+        const professional = await getProfessionalById(db, req.params.id)
+        if (professional) {
+            res.status(200).send(professional)
+        } else {
+            res.status(404).send({ message: "Professional no encontrado" })
+        }
+    } catch (error) {
+        console.error('Error al obtener el professional', error)
+        res.status(500).send({ error: 'Error interno del servidor' })
+    }
+}
 
 export const updateProfessionalController = async (req, res, db) => {
-    const { id } = req.params;
-    const { email, name, apellido, profesion, empresa, pais } = req.body;
+    const { id } = req.params
+    const { title, description, category, author, video } = req.body
+    const data = { title, description, category, author, video }
+
+    if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path)
+        data.image = result.secure_url
+    }
 
     try {
-        const userData = {
-            email,
-            name,
-            apellido,
-            profesion,
-            empresa,
-            pais,
-            userType: 'professional',
-        };
-
-        const result = await updateProfessional(db, id, userData);
+        const result = await db.collection('professional').updateOne({ _id: new ObjectId(id) }, { $set: data })
         if (result.modifiedCount === 1) {
-            const updatedUser = await findProfessionalById(db, id);
-            if (updatedUser) {
-                res.status(200).send(updatedUser);
+            const updatedProfessional = await db.collection('professional').findOne({ _id: new ObjectId(id) })
+            if (updatedProfessional) {
+                res.status(200).send(updatedProfessional)
             } else {
-                res.status(404).send({ message: "Usuario actualizado pero no encontrado" });
+                res.status(404).send({ message: "Professional actualizado pero no encontrado" })
             }
         } else {
-            res.status(404).send({ message: "Usuario no encontrado o sin cambios" });
+            res.status(404).send({ message: "Professional no encontrado o sin cambios" })
         }
     } catch (error) {
-        console.error('Error al actualizar usuario', error);
-        res.status(500).send({ error: 'Error interno del servidor' });
+        console.error('Error al actualizar professional', error)
+        res.status(500).send({ error: 'Error interno del servidor' })
     }
-};
+}
 
-export const loginProfessional = async (req, res, db) => {
+export const deleteProfessionalController = async (req, res, db) => {
+    const { id } = req.params
+
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "ID no válido" })
+    }
+
     try {
-        const { email, password } = req.body;
-
-        const user = await findProfessionalByEmail(db, email);
-
-        if (user) {
-            const isMatch = await bcrypt.compare(password, user.password);
-
-            if (isMatch) {
-               
-                res.status(200).send({
-                    message: "Login exitoso",
-                    user: {
-                        id: user._id,
-                        email: user.email, // Confirma que esto es enviado correctamente
-                        name: user.name,
-                        apellido: user.apellido,
-                        pais: user.pais,
-                        userType: user.userType,
-                    }
-                });
-            } else {
-                res.status(401).send({ error: "Contraseña incorrecta" });
-            }
+        const result = await db.collection('professional').deleteOne({ _id: new ObjectId(id) })
+        if (result.deletedCount === 1) {
+            res.status(200).send({ message: "Professional eliminado exitosamente" })
         } else {
-            res.status(404).send({ error: "Usuario no encontrado" });
+            res.status(404).send({ message: "Professional no encontrado" })
         }
     } catch (error) {
-        console.error('Error al iniciar sesión', error);
-        res.status(500).send({ error: 'Error interno del servidor' });
+        console.error('Error al eliminar professional', error);
+        res.status(500).send({ error: 'Error interno del servidor' })
     }
-};
-
-
+}

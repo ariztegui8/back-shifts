@@ -4,6 +4,12 @@ import bcrypt from 'bcryptjs';
 export const createUser = async (db, userData) => {
     const collection = db.collection('users');
 
+    const existingUser = await collection.findOne({ email: userData.email });
+    if (existingUser) {
+        // Retornar un objeto o error indicando que el correo ya está registrado
+        return { error: "El email de este user ya existe" };
+    }
+
     // Hashear la contraseña antes de guardarla
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
@@ -12,7 +18,7 @@ export const createUser = async (db, userData) => {
     const newUser = {
         ...userData,
         password: hashedPassword,
-        userType: 'user',
+        rol: 'user',
         subscribedAt: new Date()  // Añadir la fecha de creación
     };
 
