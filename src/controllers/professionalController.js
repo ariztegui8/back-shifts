@@ -4,8 +4,12 @@ import cloudinary from '../cloudinary/cloudinaryConfig.js';
 
 export const createProfessionalController = async (req, res, db) => {
     try {
-        const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial} = req.body
-        let image
+        const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial} = req.body
+
+        let { availableDates } = req.body;
+        availableDates = JSON.parse(availableDates);
+
+        let image;
         if (req.file) {
             const result = await cloudinary.uploader.upload(req.file.path)
             image = result.secure_url
@@ -14,7 +18,7 @@ export const createProfessionalController = async (req, res, db) => {
             image = process.env.CLOU_DEFAULT_IMAGE_URL
         }
 
-        const professionalData = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial, image };
+        const professionalData = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial, image, availableDates };
         const result = await createProfessional(db, professionalData);
         if (result.acknowledged) {
             const total = await db.collection('professional').countDocuments();
@@ -97,8 +101,8 @@ export const getProfessionalControllerById = async (req, res, db) => {
 
 export const updateProfessionalController = async (req, res, db) => {
     const { id } = req.params
-    const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial } = req.body
-    const data = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, fecha, hora, obraSocial }
+    const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial } = req.body
+    const data = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial }
 
     if (req.file) {
         const result = await cloudinary.uploader.upload(req.file.path)

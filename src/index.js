@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import professionalRoutes from './routes/professionalRoutes.js';
+import disponibilidadRoutes from './routes/disponibilidadRoutes.js';
+import professionalObraSocialRoutes from './routes/professionalObraSocialRoutes.js';
+import obraSocialRoutes from './routes/obraSocialRoutes.js';
 
 dotenv.config()
 
@@ -25,9 +28,12 @@ async function main() {
     console.log('Conectado a la base de datos')
     const db = client.db('shifts')
 
-    app.use('/api/auth-user', userRoutes(db))
-    app.use('/api/auth-admin', adminRoutes(db))
+    app.use('/api/authUser', userRoutes(db))
+    app.use('/api/authAdmin', adminRoutes(db))
     app.use('/api/professional', professionalRoutes(db))
+    app.use('/api/disponibilidad', disponibilidadRoutes(db))
+    app.use('/api/professionalObraSocial', professionalObraSocialRoutes(db))
+    app.use('/api/obraSocial', obraSocialRoutes(db))
 
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`)
