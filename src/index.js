@@ -5,9 +5,9 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import professionalRoutes from './routes/professionalRoutes.js';
-import disponibilidadRoutes from './routes/disponibilidadRoutes.js';
 import professionalObraSocialRoutes from './routes/professionalObraSocialRoutes.js';
 import obraSocialRoutes from './routes/obraSocialRoutes.js';
+import especialidadRoutes from './routes/especialidadRoutes.js';
 
 dotenv.config()
 
@@ -31,9 +31,9 @@ async function main() {
     app.use('/api/authUser', userRoutes(db))
     app.use('/api/authAdmin', adminRoutes(db))
     app.use('/api/professional', professionalRoutes(db))
-    app.use('/api/disponibilidad', disponibilidadRoutes(db))
     app.use('/api/professionalObraSocial', professionalObraSocialRoutes(db))
     app.use('/api/obraSocial', obraSocialRoutes(db))
+    app.use('/api/especialidad', especialidadRoutes(db))
 
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en puerto ${PORT}`)

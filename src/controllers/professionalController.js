@@ -4,10 +4,17 @@ import cloudinary from '../cloudinary/cloudinaryConfig.js';
 
 export const createProfessionalController = async (req, res, db) => {
     try {
-        const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial} = req.body
+        const { nombre, apellido, email, domicilio, pais, dni, telefono, matricula, selectedObrasSociales, especialidad} = req.body
 
-        let { availableDates } = req.body;
-        availableDates = JSON.parse(availableDates);
+        let { availableDates} = req.body;
+        try {
+            availableDates = availableDates ? JSON.parse(availableDates) : [];
+            // selectedObrasSociales = selectedObrasSociales ? JSON.parse(selectedObrasSociales) : [];
+            // especialidad = especialidad ? JSON.parse(especialidad) : null;
+        } catch (error) {
+            console.error('JSON parse error:', error);
+            return res.status(400).send({ error: "Invalid JSON format in request" });
+        }
 
         let image;
         if (req.file) {
@@ -18,7 +25,7 @@ export const createProfessionalController = async (req, res, db) => {
             image = process.env.CLOU_DEFAULT_IMAGE_URL
         }
 
-        const professionalData = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial, image, availableDates };
+        const professionalData = { nombre, apellido, email, domicilio, pais, dni, telefono, matricula, image, availableDates, selectedObrasSociales, especialidad };
         const result = await createProfessional(db, professionalData);
         if (result.acknowledged) {
             const total = await db.collection('professional').countDocuments();
@@ -58,9 +65,9 @@ export const getAllProfessionalController = async (req, res, db) => {
 
     let sortOrder = {}
     if (sort === 'ASC') {
-        sortOrder = { title: 1 }
+        sortOrder = { nombre: 1 }
     } else if (sort === 'DEC') {
-        sortOrder = { title: -1 }
+        sortOrder = { nombre: -1 }
     }
 
     try {
@@ -101,8 +108,8 @@ export const getProfessionalControllerById = async (req, res, db) => {
 
 export const updateProfessionalController = async (req, res, db) => {
     const { id } = req.params
-    const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial } = req.body
-    const data = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula, obraSocial }
+    const { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula } = req.body
+    const data = { nombre, apellido, email, domicilio, pais, dni, telefono, especialidad, matricula }
 
     if (req.file) {
         const result = await cloudinary.uploader.upload(req.file.path)
